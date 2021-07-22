@@ -96,9 +96,14 @@ class Joiner implements JoinerContract
      */
     protected function joinSegment(Model $parent, $segment, $type)
     {
+        preg_match('/\(?([a-z]+)(?: as ([a-z]+))?\)?/', $segment, $matches);
+        $segment = $matches[1];
+
         $relation = $parent->{$segment}();
         $related  = $relation->getRelated();
         $table    = $related->getTable();
+
+        if ($matches[2] ?? false) $table .= ' as ' . $matches[2];
 
         if ($relation instanceof BelongsToMany || $relation instanceof HasManyThrough) {
             $this->joinIntermediate($parent, $relation, $type);
@@ -134,6 +139,10 @@ class Joiner implements JoinerContract
     protected function getJoinClause(Model $parent, Relation $relation, $table, $type)
     {
         list($fk, $pk) = $this->getJoinKeys($relation);
+
+        preg_match('/([a-z]+)(?: as ([a-z]+))?/', $table, $matches);
+
+        if ($matches[2] ?? false) $pk = str_replace($matches[1] . '.', $matches[2] . '.', $pk);
 
         $join = (new Join($this->query, $type, $table))->on($fk, '=', $pk);
 

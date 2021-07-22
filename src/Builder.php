@@ -449,8 +449,11 @@ class Builder extends HookableBuilder
 
                 $related = $joiner->leftJoin($relation);
 
+                preg_match('/\(?([a-z]+)(?: as ([a-z]+))?\)?/', $relation, $matches);
+                $table = $matches[2] ?? $related->getTable();
+
                 $columns->add(
-                    new Column($grammar, $related->getTable(), $column, $mapping, $weight)
+                    new Column($grammar, $table, $column, $mapping, $weight)
                 );
             } else {
                 $columns->add(
